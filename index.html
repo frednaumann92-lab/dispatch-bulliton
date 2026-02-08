@@ -174,19 +174,16 @@ function showNextSecondaryMessage() {
 // ---------------- Nebraska Weather Warning ----------------
 async function loadNebraskaWarnings() {
   try {
-    const lat = "40.2642";
-    const lon = "-96.7438";
-
-    const pointRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
-    const pointData = await pointRes.json();
-
-    const alertsUrl = `https://api.weather.gov/alerts/active?zone=${pointData.properties.forecastZone}`;
+    // Use state-level alert for Nebraska for reliability
+    const alertsUrl = "https://api.weather.gov/alerts/active?area=NE";
 
     const alertRes = await fetch(alertsUrl);
     const alertData = await alertRes.json();
 
-    if(alertData.features && alertData.features.length > 0) {
-      const alertsText = alertData.features.map(alert => `${alert.properties.event}: ${alert.properties.headline}`).join(" | ");
+    if (alertData.features && alertData.features.length > 0) {
+      const alertsText = alertData.features
+        .map(alert => `${alert.properties.event}: ${alert.properties.headline}`)
+        .join(" | ");
       warningBox.textContent = alertsText;
     } else {
       warningBox.textContent = "No active weather warnings.";
@@ -225,8 +222,3 @@ setInterval(loadNebraskaWarnings, 300000);  // warnings every 5min
 
 </body>
 </html>
-
-
-</body>
-</html>
-
