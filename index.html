@@ -138,7 +138,7 @@ updateClock();
 // ---------------- Main Messages ----------------
 async function loadMainMessages() {
   try {
-    const response = await fetch('messages.json?' + Date.now());
+    const response = await fetch('messages.json?v=' + Date.now());
     const mainMessages = await response.json();
     if(mainMessages.length === 0) mainPanel.textContent = "No messages at this time.";
     else mainPanel.innerHTML = mainMessages.map(msg => `<p>${msg}</p>`).join('');
@@ -151,7 +151,7 @@ async function loadMainMessages() {
 // ---------------- Secondary Messages ----------------
 async function loadSecondaryMessages() {
   try {
-    const response = await fetch('announcements.json?' + Date.now());
+    const response = await fetch('announcements.json?v=' + Date.now());
     secondaryMessages = await response.json();
     if(secondaryMessages.length === 0) secondaryPanel.textContent = "No announcements at this time.";
     showNextSecondaryMessage();
@@ -200,7 +200,7 @@ async function loadNebraskaWarnings() {
 // ---------------- Ticker Messages ----------------
 async function loadTickerMessages() {
   try {
-    const response = await fetch('ticker.json?' + Date.now());
+    const response = await fetch('ticker.json?v=' + Date.now());
     const tickerMessages = await response.json();
     if(tickerMessages.length === 0) ticker.textContent = "No ticker messages at this time.";
     else ticker.textContent = tickerMessages.join(" • ");
@@ -222,6 +222,10 @@ setInterval(loadSecondaryMessages, 10000);  // secondary panel updates every 10s
 setInterval(loadTickerMessages, 10000);     // ticker updates every 10s
 setInterval(loadNebraskaWarnings, 300000);  // warnings every 5min
 </script>
+
+</body>
+</html>
+
 
 </body>
 </html>
