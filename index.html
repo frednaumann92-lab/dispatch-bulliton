@@ -49,6 +49,7 @@
     font-size: 1.2em;
     text-align: center;
     color: #fff;
+    transition: opacity 1s ease-in-out;
   }
 
   .panel {
@@ -62,6 +63,7 @@
     font-size: 1.5em;
     line-height: 1.6em;
     color: #e0e0e0;
+    transition: opacity 1s ease-in-out;
   }
 
   #ticker-container {
@@ -106,11 +108,9 @@
 
 <div id="warning-box">Loading Nebraska warnings...</div>
 
-<!-- Panels -->
 <div id="main-panel" class="panel">Loading main messages...</div>
 <div id="secondary-panel" class="panel">Loading announcements...</div>
 
-<!-- Scrolling Ticker -->
 <div id="ticker-container">
   <div id="ticker">Loading ticker messages...</div>
 </div>
@@ -138,13 +138,10 @@ updateClock();
 // ---------------- Main Messages ----------------
 async function loadMainMessages() {
   try {
-    const response = await fetch('messages.json');
+    const response = await fetch('messages.json?' + Date.now());
     const mainMessages = await response.json();
     if(mainMessages.length === 0) mainPanel.textContent = "No messages at this time.";
-    else {
-      // Display all messages as a list
-      mainPanel.innerHTML = mainMessages.map(msg => `<p>${msg}</p>`).join('');
-    }
+    else mainPanel.innerHTML = mainMessages.map(msg => `<p>${msg}</p>`).join('');
   } catch (err) {
     console.error("Failed to load main messages:", err);
     mainPanel.textContent = "Unable to load main messages.";
@@ -154,11 +151,10 @@ async function loadMainMessages() {
 // ---------------- Secondary Messages ----------------
 async function loadSecondaryMessages() {
   try {
-    const response = await fetch('announcements.json');
+    const response = await fetch('announcements.json?' + Date.now());
     secondaryMessages = await response.json();
     if(secondaryMessages.length === 0) secondaryPanel.textContent = "No announcements at this time.";
     showNextSecondaryMessage();
-    setInterval(showNextSecondaryMessage, 10000); // rotate every 10s
   } catch (err) {
     console.error("Failed to load secondary messages:", err);
     secondaryPanel.textContent = "Unable to load announcements.";
@@ -166,6 +162,7 @@ async function loadSecondaryMessages() {
 }
 
 function showNextSecondaryMessage() {
+  if(secondaryMessages.length === 0) return;
   secondaryPanel.style.opacity = 0;
   setTimeout(() => {
     secondaryPanel.textContent = secondaryMessages[secondaryIndex];
@@ -203,7 +200,7 @@ async function loadNebraskaWarnings() {
 // ---------------- Ticker Messages ----------------
 async function loadTickerMessages() {
   try {
-    const response = await fetch('ticker.json');
+    const response = await fetch('ticker.json?' + Date.now());
     const tickerMessages = await response.json();
     if(tickerMessages.length === 0) ticker.textContent = "No ticker messages at this time.";
     else ticker.textContent = tickerMessages.join(" • ");
@@ -218,8 +215,14 @@ loadMainMessages();
 loadSecondaryMessages();
 loadNebraskaWarnings();
 loadTickerMessages();
-setInterval(loadNebraskaWarnings, 300000);
+
+// ---------------- Auto-Refresh ----------------
+setInterval(loadMainMessages, 5000);        // main panel updates every 5s
+setInterval(loadSecondaryMessages, 10000);  // secondary panel updates every 10s
+setInterval(loadTickerMessages, 10000);     // ticker updates every 10s
+setInterval(loadNebraskaWarnings, 300000);  // warnings every 5min
 </script>
 
 </body>
 </html>
+
