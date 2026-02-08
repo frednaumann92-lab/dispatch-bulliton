@@ -38,6 +38,19 @@
     color: #e0e0e0;
   }
 
+  #fullscreen-btn {
+    position: absolute;
+    top: 15px;
+    left: 20px;
+    background: #004080;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    z-index: 10;
+  }
+
   #warning-box {
     margin: 20px auto 10px;
     padding: 20px;
@@ -104,6 +117,7 @@
 <header>
   Southeast Communications 911
   <div id="clock">--:--:--</div>
+  <button id="fullscreen-btn">Fullscreen</button>
 </header>
 
 <div id="warning-box">Loading Nebraska warnings...</div>
@@ -123,6 +137,7 @@ const warningBox = document.getElementById('warning-box');
 const mainPanel = document.getElementById('main-panel');
 const secondaryPanel = document.getElementById('secondary-panel');
 const ticker = document.getElementById('ticker');
+const fsButton = document.getElementById('fullscreen-btn');
 
 let secondaryMessages = [];
 let secondaryIndex = 0;
@@ -174,9 +189,7 @@ function showNextSecondaryMessage() {
 // ---------------- Nebraska Weather Warning ----------------
 async function loadNebraskaWarnings() {
   try {
-    // Use state-level alert for Nebraska for reliability
     const alertsUrl = "https://api.weather.gov/alerts/active?area=NE";
-
     const alertRes = await fetch(alertsUrl);
     const alertData = await alertRes.json();
 
@@ -207,6 +220,30 @@ async function loadTickerMessages() {
   }
 }
 
+// ---------------- Fullscreen Button ----------------
+function goFullscreen() {
+  const el = document.documentElement;
+  if (el.requestFullscreen) {
+    el.requestFullscreen().catch(err => console.log("Fullscreen failed:", err));
+  } else if (el.webkitRequestFullscreen) { 
+    el.webkitRequestFullscreen();
+  } else if (el.msRequestFullscreen) { 
+    el.msRequestFullscreen();
+  }
+}
+
+// Button hides itself when fullscreen
+fsButton.addEventListener('click', () => {
+  goFullscreen();
+  fsButton.style.display = 'none';
+});
+
+// Hide button automatically if fullscreen changes
+document.addEventListener('fullscreenchange', () => {
+  if (document.fullscreenElement) fsButton.style.display = 'none';
+  else fsButton.style.display = 'block';
+});
+
 // ---------------- Initial Load ----------------
 loadMainMessages();
 loadSecondaryMessages();
@@ -214,10 +251,10 @@ loadNebraskaWarnings();
 loadTickerMessages();
 
 // ---------------- Auto-Refresh ----------------
-setInterval(loadMainMessages, 5000);        // main panel updates every 5s
-setInterval(loadSecondaryMessages, 10000);  // secondary panel updates every 10s
-setInterval(loadTickerMessages, 10000);     // ticker updates every 10s
-setInterval(loadNebraskaWarnings, 300000);  // warnings every 5min
+setInterval(loadMainMessages, 5000);
+setInterval(loadSecondaryMessages, 10000);
+setInterval(loadTickerMessages, 10000);
+setInterval(loadNebraskaWarnings, 300000);
 </script>
 
 </body>
