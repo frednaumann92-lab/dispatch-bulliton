@@ -156,7 +156,7 @@ let scrollTop = 0;
 // Ticker animation variables
 let tickerX = 0;
 let tickerWidth = 0;
-const tickerSpeed = 50; // pixels per second, adjust for readability
+const tickerSpeed = 50; // pixels per second
 let lastTime = null;
 
 // ---------------- Clock ----------------
@@ -172,7 +172,7 @@ function scrollMain() {
   const panelHeight = mainScroll.parentElement.clientHeight;
   const contentHeight = mainScroll.scrollHeight;
   if(contentHeight <= panelHeight) return;
-  scrollTop -= 0.5; // adjust speed here if too fast/slow
+  scrollTop -= 0.5; // adjust speed if needed
   if(-scrollTop >= contentHeight) scrollTop = panelHeight;
   mainScroll.style.transform = `translateY(${scrollTop}px)`;
   requestAnimationFrame(scrollMain);
@@ -197,7 +197,10 @@ async function loadSecondaryMessages() {
   try {
     const res = await fetch('announcements.json?v=' + Date.now());
     secondaryMessages = await res.json();
+    secondaryIndex = 0; // reset
     showNextSecondary();
+    // cycle every 10 seconds
+    setInterval(showNextSecondary, 10000);
   } catch(err) {
     secondaryPanel.textContent = "Unable to load announcements.";
   }
@@ -280,7 +283,6 @@ requestAnimationFrame(animateTicker());
 
 // ---------------- Auto Refresh ----------------
 setInterval(loadMainMessages, 5000);
-setInterval(loadSecondaryMessages, 10000);
 setInterval(loadNebraskaWarnings, 300000);
 setInterval(loadTickerNews, 60000); // refresh news every 1 minute
 </script>
