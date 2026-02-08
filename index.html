@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Southeast Communications 911</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #1c1c1c;
+    color: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100vh;
+  }
+
+  header {
+    width: 100%;
+    background-color: #002b4d;
+    color: #ffffff;
+    padding: 20px;
+    text-align: center;
+    font-size: 2em;
+    font-weight: bold;
+    position: relative;
+  }
+
+  /* Clock in top-right */
+  #clock {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 1em;
+    font-weight: normal;
+    color: #e0e0e0;
+  }
+
+  #warning-box {
+    margin: 20px auto 10px;
+    padding: 20px;
+    width: 60%;
+    max-width: 800px;
+    background-color: #800000; /* dark red for alert */
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+    font-size: 1.2em;
+    text-align: center;
+    color: #fff;
+  }
+
+  #message-box {
+    margin: 10px auto 30px;
+    padding: 40px;
+    width: 80%;
+    max-width: 1000px;
+    min-height: 250px;
+    background-color: #2c2c2c;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    font-size: 1.5em;
+    line-height: 1.6em;
+    text-align: center;
+    color: #e0e0e0;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+  }
+
+  footer {
+    margin-top: auto;
+    padding: 15px;
+    font-size: 1em;
+    color: #aaaaaa;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  Southeast Communications 911
+  <div id="clock">--:--:--</div>
+</header>
+
+<div id="warning-box">Loading Nebraska warnings...</div>
+
+<div id="message-box">Loading messages...</div>
+
+<footer>Messages update automatically</footer>
+
+<script>
+const messageBox = document.getElementById('message-box');
+const warningBox = document.getElementById('warning-box');
+const clock = document.getElementById('clock');
+
+let messages = [];
+let currentIndex = 0;
+let fadeDuration = 1000; // 1 second fade
+
+// ---------------- Clock ----------------
+function updateClock() {
+  const now = new Date();
+  clock.textContent = now.toLocaleTimeString();
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ---------------- Messages ----------------
+async function loadMessages() {
+  try {
+    const response = await fetch('messages.json');
+    messages = await response.json();
+    if(messages.length === 0) messages = ["No messages at this time."];
+    showNextMessage();
+    setInterval(showNextMessage, 7000);
+  } catch (err) {
+    console.error("Failed to load messages:", err);
+    messageBox.textContent = "Unable to load messages.";
+  }
+}
+
+function showNextMessage() {
+  // Fade out
+  messageBox.style.opacity = 0;
+
+  setTimeout(() => {
+    // Update text
+    messageBox.textContent = messages[currentIndex];
+    currentIndex = (currentIndex + 1) % messages.length;
+    // Fade in
+    messageBox.style.opacity = 1;
+  }, fadeDuration);
+}
+
+// ---------------- Nebraska Weather Warning ----------------
+async function loadNebraskaWarnings() {
+  try {
+    // Beatrice, NE coordinates
+    const lat = "40.2642";
+    const lon = "-96.7438";
+
+    // Step 1: get point info
+    const pointRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
+    const pointData = await pointRes.json();
+
+    const alertsUrl = `https://api.weather.gov/alerts/active?zone=${pointData.properties.forecastZone}`;
+
+    // Step 2: fetch active alerts
+    const alertRes = await fetch(alertsUrl);
+    const alertData = await alertRes.json();
+
+    if(alertData.features && alertData.features.length > 0) {
+      const alertsText = alertData.features.map(alert => `${alert.properties.event}: ${alert.properties.headline}`).join(" | ");
+      warningBox.textContent = alertsText;
+    } else {
+      warningBox.textContent = "No active weather warnings.";
+    }
+
+  } catch (err) {
+    console.error("Error loading weather warnings:", err);
+    warningBox.textContent = "Unable to load Nebraska weather warnings.";
+  }
+}
+
+// Initial load
+loadMessages();
+loadNebraskaWarnings();
+
+// Optional: refresh warnings every 5 minutes
+setInterval(loadNebraskaWarnings, 300000);
+</script>
+
+</body>
+</html>
