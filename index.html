@@ -49,8 +49,6 @@
     font-size: 1.2em;
     text-align: center;
     color: #fff;
-    opacity: 1;
-    transition: opacity 1s ease-in-out;
   }
 
   .panel {
@@ -58,16 +56,12 @@
     padding: 30px;
     width: 80%;
     max-width: 1000px;
-    min-height: 200px;
     background-color: #2c2c2c;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.6);
     font-size: 1.5em;
     line-height: 1.6em;
-    text-align: center;
     color: #e0e0e0;
-    opacity: 0;
-    transition: opacity 1s ease-in-out;
   }
 
   #ticker-container {
@@ -112,7 +106,7 @@
 
 <div id="warning-box">Loading Nebraska warnings...</div>
 
-<!-- Multiple Panels -->
+<!-- Panels -->
 <div id="main-panel" class="panel">Loading main messages...</div>
 <div id="secondary-panel" class="panel">Loading announcements...</div>
 
@@ -130,13 +124,8 @@ const mainPanel = document.getElementById('main-panel');
 const secondaryPanel = document.getElementById('secondary-panel');
 const ticker = document.getElementById('ticker');
 
-let mainMessages = [];
-let mainIndex = 0;
-
 let secondaryMessages = [];
 let secondaryIndex = 0;
-
-let fadeDuration = 1000;
 
 // ---------------- Clock ----------------
 function updateClock() {
@@ -150,23 +139,16 @@ updateClock();
 async function loadMainMessages() {
   try {
     const response = await fetch('messages.json');
-    mainMessages = await response.json();
-    if(mainMessages.length === 0) mainMessages = ["No messages at this time."];
-    showNextMainMessage();
-    setInterval(showNextMainMessage, 7000);
+    const mainMessages = await response.json();
+    if(mainMessages.length === 0) mainPanel.textContent = "No messages at this time.";
+    else {
+      // Display all messages as a list
+      mainPanel.innerHTML = mainMessages.map(msg => `<p>${msg}</p>`).join('');
+    }
   } catch (err) {
     console.error("Failed to load main messages:", err);
     mainPanel.textContent = "Unable to load main messages.";
   }
-}
-
-function showNextMainMessage() {
-  mainPanel.style.opacity = 0;
-  setTimeout(() => {
-    mainPanel.textContent = mainMessages[mainIndex];
-    mainIndex = (mainIndex + 1) % mainMessages.length;
-    mainPanel.style.opacity = 1;
-  }, fadeDuration);
 }
 
 // ---------------- Secondary Messages ----------------
@@ -174,9 +156,9 @@ async function loadSecondaryMessages() {
   try {
     const response = await fetch('announcements.json');
     secondaryMessages = await response.json();
-    if(secondaryMessages.length === 0) secondaryMessages = ["No announcements at this time."];
+    if(secondaryMessages.length === 0) secondaryPanel.textContent = "No announcements at this time.";
     showNextSecondaryMessage();
-    setInterval(showNextSecondaryMessage, 10000); // rotate slower
+    setInterval(showNextSecondaryMessage, 10000); // rotate every 10s
   } catch (err) {
     console.error("Failed to load secondary messages:", err);
     secondaryPanel.textContent = "Unable to load announcements.";
@@ -189,7 +171,7 @@ function showNextSecondaryMessage() {
     secondaryPanel.textContent = secondaryMessages[secondaryIndex];
     secondaryIndex = (secondaryIndex + 1) % secondaryMessages.length;
     secondaryPanel.style.opacity = 1;
-  }, fadeDuration);
+  }, 500);
 }
 
 // ---------------- Nebraska Weather Warning ----------------
@@ -224,7 +206,7 @@ async function loadTickerMessages() {
     const response = await fetch('ticker.json');
     const tickerMessages = await response.json();
     if(tickerMessages.length === 0) ticker.textContent = "No ticker messages at this time.";
-    else ticker.textContent = tickerMessages.join(" • "); // combine all messages
+    else ticker.textContent = tickerMessages.join(" • ");
   } catch (err) {
     console.error("Failed to load ticker messages:", err);
     ticker.textContent = "Unable to load ticker messages.";
@@ -236,7 +218,7 @@ loadMainMessages();
 loadSecondaryMessages();
 loadNebraskaWarnings();
 loadTickerMessages();
-setInterval(loadNebraskaWarnings, 300000); // refresh warnings every 5 min
+setInterval(loadNebraskaWarnings, 300000);
 </script>
 
 </body>
