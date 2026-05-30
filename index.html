@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Southeast Communications 911</title>
+
 <style>
 html, body {
   margin: 0;
@@ -15,27 +16,25 @@ html, body {
   color: #f0f0f0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
 }
 
 header {
   width: 100%;
   background-color: #002b4d;
-  color: #ffffff;
+  color: #fff;
   padding: 20px;
   text-align: center;
   font-size: 2em;
   font-weight: bold;
   position: relative;
+  box-sizing: border-box;
 }
 
 #clock {
   position: absolute;
   top: 15px;
   right: 20px;
-  font-size: 1em;
-  color: #e0e0e0;
+  font-size: 0.9em;
 }
 
 #fullscreen-btn {
@@ -43,51 +42,93 @@ header {
   top: 15px;
   left: 20px;
   background: #004080;
-  color: #fff;
+  color: white;
   border: none;
-  padding: 5px 10px;
-  cursor: pointer;
+  padding: 8px 12px;
   border-radius: 4px;
-  z-index: 10;
+  cursor: pointer;
 }
 
 #warning-box {
-  margin: 10px auto;
-  padding: 20px;
+  margin: 8px auto;
+  padding: 8px 15px;
   width: 80%;
   max-width: 1000px;
   background-color: #800000;
   border-radius: 8px;
-  text-align: center;
-  color: #fff;
+  color: white;
+  height: 35px;
+  line-height: 20px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 1em;
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .panel {
   margin: 10px auto;
-  padding: 20px;
   width: 80%;
   max-width: 1000px;
   background-color: #2c2c2c;
   border-radius: 10px;
-  font-size: 1.5em;
-  line-height: 1.6em;
+  font-size: 1.6em;
+  line-height: 1.5em;
   color: #e0e0e0;
   display: flex;
   flex-direction: column;
-  text-align: center;
-  overflow: hidden;
   position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
-#main-panel { flex: 2; }
-#secondary-panel { flex: 1; }
+.panel p {
+  margin: 8px 15px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+#main-panel {
+  flex: 4;
+  min-height: 300px;
+}
+
+#secondary-panel {
+  flex: 2;
+  padding: 20px;
+  overflow-y: auto;
+  text-align: left;
+  transition: opacity 0.5s ease;
+}
+
+#main-panel::before,
+#main-panel::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 40px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+#main-panel::before {
+  top: 0;
+  background: linear-gradient(#2c2c2c, transparent);
+}
+
+#main-panel::after {
+  bottom: 0;
+  background: linear-gradient(transparent, #2c2c2c);
+}
 
 #main-scroll {
   position: absolute;
-  top: 0;
   left: 0;
   right: 0;
+  top: 0;
+  padding-top: 15px;
 }
 
 #ticker-container {
@@ -103,19 +144,32 @@ header {
 #ticker-content {
   display: inline-block;
   white-space: nowrap;
-  font-size: 1.2em;
-  color: #e0e0e0;
   position: absolute;
   top: 0;
   left: 0;
+  font-size: 1.2em;
+  line-height: 2em;
 }
 
 footer {
-  width: 100%;
-  padding: 15px;
-  font-size: 1em;
-  color: #aaaaaa;
   text-align: center;
+  color: #aaa;
+  padding: 10px;
+}
+
+@media (max-width: 768px) {
+  .panel,
+  #warning-box {
+    width: 95%;
+  }
+
+  .panel {
+    font-size: 1.2em;
+  }
+
+  header {
+    font-size: 1.4em;
+  }
 }
 </style>
 </head>
@@ -133,7 +187,9 @@ footer {
   <div id="main-scroll">Loading main messages...</div>
 </div>
 
-<div id="secondary-panel" class="panel">Loading announcements...</div>
+<div id="secondary-panel" class="panel">
+  Loading announcements...
+</div>
 
 <div id="ticker-container">
   <div id="ticker-content">Loading news ticker...</div>
@@ -152,139 +208,179 @@ const fsButton = document.getElementById('fullscreen-btn');
 let secondaryMessages = [];
 let secondaryIndex = 0;
 let scrollTop = 0;
+let scrollRunning = false;
 
-// Ticker animation variables
 let tickerX = 0;
 let tickerWidth = 0;
-const tickerSpeed = 50; // pixels per second
+const tickerSpeed = 50;
 let lastTime = null;
 
-// ---------------- Clock ----------------
 function updateClock() {
-  const now = new Date();
-  clock.textContent = now.toLocaleTimeString();
+  clock.textContent = new Date().toLocaleTimeString();
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-// ---------------- Main Panel Vertical Scroll ----------------
 function scrollMain() {
   const panelHeight = mainScroll.parentElement.clientHeight;
   const contentHeight = mainScroll.scrollHeight;
-  if(contentHeight <= panelHeight) return;
-  scrollTop -= 0.5; // adjust speed if needed
-  if(-scrollTop >= contentHeight) scrollTop = panelHeight;
-  mainScroll.style.transform = `translateY(${scrollTop}px)`;
+
+  if (contentHeight > panelHeight) {
+    scrollTop -= 0.4;
+
+    if (-scrollTop >= contentHeight) {
+      scrollTop = panelHeight;
+    }
+
+    mainScroll.style.transform = `translateY(${scrollTop}px)`;
+  }
+
   requestAnimationFrame(scrollMain);
 }
 
-// ---------------- Load Main Messages ----------------
 async function loadMainMessages() {
   try {
     const res = await fetch('messages.json?v=' + Date.now());
     const data = await res.json();
-    mainScroll.innerHTML = data.length ? data.map(m => `<p>${m}</p>`).join('') : "No messages at this time.";
+
+    mainScroll.innerHTML = data.length
+      ? data.map(m => `<p>${String(m).replace(/\\n/g,'<br>')}</p>`).join('')
+      : '<p>No messages at this time.</p>';
+
     scrollTop = 0;
-    requestAnimationFrame(scrollMain);
-  } catch(err) {
-    mainScroll.textContent = "Unable to load main messages.";
+
+    if (!scrollRunning) {
+      scrollRunning = true;
+      requestAnimationFrame(scrollMain);
+    }
+
+  } catch (err) {
+    mainScroll.innerHTML = '<p>Unable to load main messages.</p>';
     console.error(err);
   }
 }
 
-// ---------------- Load Secondary Messages ----------------
 async function loadSecondaryMessages() {
   try {
     const res = await fetch('announcements.json?v=' + Date.now());
     secondaryMessages = await res.json();
-    secondaryIndex = 0; // reset
+    secondaryIndex = 0;
     showNextSecondary();
-    // cycle every 10 seconds
-    setInterval(showNextSecondary, 10000);
-  } catch(err) {
-    secondaryPanel.textContent = "Unable to load announcements.";
+  } catch (err) {
+    secondaryPanel.textContent = 'Unable to load announcements.';
   }
 }
 
 function showNextSecondary() {
-  if(!secondaryMessages.length) return;
+  if (!secondaryMessages.length) return;
+
   secondaryPanel.style.opacity = 0;
+
   setTimeout(() => {
-    secondaryPanel.textContent = secondaryMessages[secondaryIndex];
-    secondaryIndex = (secondaryIndex + 1) % secondaryMessages.length;
+    secondaryPanel.innerHTML =
+      `<div>${secondaryMessages[secondaryIndex]}</div>`;
+
+    secondaryIndex =
+      (secondaryIndex + 1) % secondaryMessages.length;
+
     secondaryPanel.style.opacity = 1;
   }, 500);
 }
 
-// ---------------- Nebraska Warnings ----------------
 async function loadNebraskaWarnings() {
   try {
-    const res = await fetch("https://api.weather.gov/alerts/active?area=NE");
+    const res = await fetch(
+      'https://api.weather.gov/alerts/active?area=NE'
+    );
+
     const data = await res.json();
-    if(data.features.length) {
-      warningBox.textContent = data.features.map(a => `${a.properties.event}: ${a.properties.headline}`).join(" | ");
+
+    if (data.features && data.features.length) {
+      warningBox.textContent =
+        data.features
+          .map(a => a.properties.event)
+          .join(' • ');
     } else {
-      warningBox.textContent = "No active weather warnings.";
+      warningBox.textContent =
+        'No active weather warnings.';
     }
-  } catch(err) {
-    warningBox.textContent = "Unable to load Nebraska warnings.";
+
+  } catch (err) {
+    warningBox.textContent =
+      'Unable to load Nebraska warnings.';
   }
 }
 
-// ---------------- Dynamic News Ticker ----------------
 async function loadTickerNews() {
   try {
-    const res = await fetch('https://saurav.tech/NewsAPI/top-headlines/category/general/us.json');
+    const res = await fetch(
+      'https://saurav.tech/NewsAPI/top-headlines/category/general/us.json'
+    );
+
     const data = await res.json();
-    let text = "No news available.";
-    if(data.articles && data.articles.length) {
-      text = data.articles.map(a => a.title).join(" • ");
+
+    let text = 'No news available.';
+
+    if (data.articles && data.articles.length) {
+      text = data.articles
+        .map(a => a.title)
+        .join(' • ');
     }
+
     tickerContent.textContent = text;
-    tickerX = tickerContent.parentElement.offsetWidth;
-    tickerWidth = tickerContent.offsetWidth;
-    lastTime = null; // reset animation
-  } catch(err) {
-    console.error(err);
-    tickerContent.textContent = "Unable to load news ticker.";
-    tickerX = tickerContent.parentElement.offsetWidth;
-    tickerWidth = tickerContent.offsetWidth;
-    lastTime = null;
+
+  } catch (err) {
+    tickerContent.textContent =
+      'Unable to load news ticker.';
   }
+
+  tickerX = tickerContent.parentElement.offsetWidth;
+  tickerWidth = tickerContent.offsetWidth;
+  lastTime = null;
 }
 
 function animateTicker(time) {
-  if(!lastTime) lastTime = time;
-  const delta = (time - lastTime) / 1000; // seconds
+  if (!lastTime) lastTime = time;
+
+  const delta = (time - lastTime) / 1000;
   lastTime = time;
+
   tickerX -= tickerSpeed * delta;
-  if(tickerX <= -tickerWidth) tickerX = tickerContent.parentElement.offsetWidth;
-  tickerContent.style.transform = `translateX(${tickerX}px)`;
+
+  if (tickerX <= -tickerWidth) {
+    tickerX = tickerContent.parentElement.offsetWidth;
+  }
+
+  tickerContent.style.transform =
+    `translateX(${tickerX}px)`;
+
   requestAnimationFrame(animateTicker);
 }
 
-// ---------------- Fullscreen ----------------
 fsButton.addEventListener('click', () => {
-  const el = document.documentElement;
-  if (el.requestFullscreen) el.requestFullscreen();
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen();
+  }
   fsButton.style.display = 'none';
 });
 
 document.addEventListener('fullscreenchange', () => {
-  if(!document.fullscreenElement) fsButton.style.display = 'block';
+  if (!document.fullscreenElement) {
+    fsButton.style.display = 'block';
+  }
 });
 
-// ---------------- Initial Load ----------------
 loadMainMessages();
 loadSecondaryMessages();
 loadNebraskaWarnings();
 loadTickerNews();
-requestAnimationFrame(animateTicker());
 
-// ---------------- Auto Refresh ----------------
+requestAnimationFrame(animateTicker);
+
 setInterval(loadMainMessages, 5000);
 setInterval(loadNebraskaWarnings, 300000);
-setInterval(loadTickerNews, 60000); // refresh news every 1 minute
+setInterval(loadTickerNews, 60000);
+setInterval(showNextSecondary, 10000);
 </script>
 
 </body>
