@@ -1,1 +1,35 @@
 
+[
+  {
+    "title": "Welcome to Southeast Communications",
+    "body": "Welcome to the communications center. Check this board for current announcements, training reminders, and staff information.",
+    "category": "Announcement",
+    "level": "info",
+    "time": "STAFF NOTICE",
+    "footer": "Southeast Communications"
+  },
+  {
+    "title": "Training Reminder",
+    "body": "Add the date, time, location, and details of your next training session here.",
+    "category": "Training",
+    "level": "warning",
+    "time": "UPCOMING",
+    "footer": "Please review the schedule."
+  },
+  {
+    "title": "System Maintenance",
+    "body": "Post planned maintenance windows and other relevant system notices here.",
+    "category": "IT NOTICE",
+    "level": "info",
+    "time": "INFORMATION",
+    "footer": "Contact the appropriate administrator with questions."
+  },
+  {
+    "title": "Team Recognition",
+    "body": "Recognize a team accomplishment, milestone, or employee achievement.",
+    "category": "TEAM",
+    "level": "success",
+    "time": "HIGHLIGHT",
+    "footer": "Thank you for your work."
+  }
+]
