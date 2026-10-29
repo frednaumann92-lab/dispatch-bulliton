@@ -1,186 +1,986 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Southeast Communications 911</title>
+<meta name="theme-color" content="#07111f">
+<title>Southeast Communications | 911 Command Center</title>
+
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-    font-family: Arial, sans-serif;
-    background-color: #1c1c1c;
-    color: #f0f0f0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+:root {
+  --bg: #07111f;
+  --panel: #0d1b2d;
+  --panel2: #10233a;
+  --line: #203a55;
+  --blue: #38bdf8;
+  --cyan: #67e8f9;
+  --text: #f1f7ff;
+  --muted: #93a9c2;
+  --green: #34d399;
+  --amber: #fbbf24;
+  --orange: #fb923c;
+  --red: #fb5555;
+  --purple: #c084fc;
+}
 
-  header {
-    width: 100%;
-    background-color: #002b4d;
-    color: #fff;
-    padding: 20px;
-    text-align: center;
-    font-size: 2.2em;
-    font-weight: bold;
-    position: relative;
-    box-sizing: border-box;
-  }
+* { box-sizing: border-box; }
 
-  #clock {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    font-size: 0.8em;
-  }
+html, body {
+  margin: 0;
+  width: 100%;
+  min-height: 100%;
+}
 
-  #fullscreen-btn {
-    position: absolute;
-    top: 18px;
-    left: 20px;
-    background: #004080;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.5em;
-  }
+body {
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  color: var(--text);
+  background:
+    radial-gradient(ellipse at 50% -20%, #173b5e 0%, transparent 55%),
+    var(--bg);
+  font-family: Arial, Helvetica, sans-serif;
+}
 
-  /* Main Center Panel */
-  #main-panel {
-    flex: 1;
-    margin: 20px auto;
-    width: 90%;
-    max-width: 1200px;
-    background-color: #2c2c2c;
-    border-radius: 10px;
-    padding: 25px;
-    font-size: 1.8em;
-    line-height: 1.6em;
-    color: #e0e0e0;
-    overflow-y: auto;
-    box-sizing: border-box;
-    border: 1px solid #444;
-  }
+button { font: inherit; }
 
-  #main-panel p {
-    margin-top: 0;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px dashed #444;
-  }
-  #main-panel p:last-child {
-    border-bottom: none;
-  }
+.topbar {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 20px;
+  padding: 17px 28px;
+  background: rgba(5, 16, 30, .96);
+  border-bottom: 2px solid var(--blue);
+  box-shadow: 0 5px 25px #0005;
+}
 
-  /* Simple Scrolling Bottom Ticker */
-  #ticker-container {
-    width: 100%;
-    background-color: #800000; /* Dark Red Alert Color */
-    border-top: 2px solid #a00000;
-    overflow: hidden;
-    white-space: nowrap;
-    box-sizing: border-box;
-    padding: 12px 0;
-  }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+}
 
-  #ticker-content {
-    display: inline-block;
-    padding-left: 100%;
-    animation: ticker-scroll 25s linear infinite;
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #fff;
-  }
+.brand-mark {
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--blue);
+  border-radius: 12px;
+  color: var(--cyan);
+  font-size: 23px;
+  font-weight: 900;
+  background: #102b43;
+  box-shadow: inset 0 0 20px #38bdf822;
+}
 
-  @keyframes ticker-scroll {
-    0% { transform: translate3d(0, 0, 0); }
-    100% { transform: translate3d(-100%, 0, 0); }
+.brand-name {
+  font-size: clamp(17px, 1.65vw, 28px);
+  font-weight: 900;
+  letter-spacing: .07em;
+  line-height: 1.2;
+}
+
+.brand-sub {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.header-center { text-align: center; }
+
+.live-label {
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .24em;
+}
+
+.live-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 12px var(--green);
+  animation: pulse 2s infinite;
+}
+
+#clock {
+  margin-top: 5px;
+  font-family: Consolas, monospace;
+  font-size: clamp(23px, 2.5vw, 39px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .04em;
+}
+
+#date {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.header-right {
+  justify-self: end;
+  text-align: right;
+}
+
+.network-label {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: .13em;
+}
+
+#connection {
+  margin-top: 8px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.small-btn {
+  padding: 7px 10px;
+  border: 1px solid #31516d;
+  border-radius: 5px;
+  color: var(--text);
+  background: #11253a;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.small-btn:hover { border-color: var(--cyan); }
+
+.status-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 9px 28px;
+  background: #0b1929;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.status-left, .status-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.status-item { white-space: nowrap; }
+.status-item strong { color: var(--text); }
+
+main {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 20px 26px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 20px;
+}
+
+.briefings {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.section-title {
+  font-size: clamp(17px, 1.5vw, 23px);
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.section-subtitle {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: .1em;
+}
+
+#message-count {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border: 1px solid #285174;
+  border-radius: 5px;
+  color: var(--cyan);
+  background: #0b2035;
+  font-family: Consolas, monospace;
+  font-size: 12px;
+}
+
+#main-panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 14px;
+  padding: 2px 5px 5px 2px;
+  scrollbar-color: #31516d #0b1726;
+  scrollbar-width: thin;
+}
+
+.message-card {
+  position: relative;
+  min-width: 0;
+  padding: 19px 20px;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--blue);
+  border-radius: 7px;
+  background: linear-gradient(135deg, #12253a, #0b192a);
+  box-shadow: 0 8px 22px #0002;
+  animation: appear .35s ease both;
+}
+
+.message-card[data-level="urgent"] {
+  border-left-color: var(--red);
+  background: linear-gradient(135deg, #381b27, #171724);
+}
+
+.message-card[data-level="warning"] {
+  border-left-color: var(--amber);
+}
+
+.message-card[data-level="success"] {
+  border-left-color: var(--green);
+}
+
+.message-card[data-level="info"] {
+  border-left-color: var(--blue);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tag {
+  display: inline-block;
+  padding: 5px 8px;
+  border: 1px solid #31516d;
+  border-radius: 3px;
+  color: var(--cyan);
+  background: #0b2035;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+[data-level="urgent"] .tag {
+  border-color: #9d3948;
+  color: #ffaaaa;
+  background: #471d29;
+}
+
+[data-level="warning"] .tag {
+  color: var(--amber);
+  border-color: #79591b;
+}
+
+[data-level="success"] .tag {
+  color: var(--green);
+  border-color: #246c55;
+}
+
+.card-time {
+  color: var(--muted);
+  font-family: Consolas, monospace;
+  font-size: 10px;
+}
+
+.card-title {
+  margin: 0 0 10px;
+  font-size: clamp(19px, 1.8vw, 28px);
+  line-height: 1.2;
+  font-weight: 900;
+}
+
+.card-body {
+  margin: 0;
+  color: #cfdeef;
+  font-size: clamp(15px, 1.2vw, 19px);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.card-footer {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #ffffff12;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  padding: 55px 20px;
+  border: 1px dashed #31516d;
+  border-radius: 8px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 18px;
+}
+
+.sidebar {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.side-card {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: linear-gradient(145deg, #11243a, #0b1828);
+}
+
+.side-heading {
+  margin: 0 0 15px;
+  color: var(--cyan);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.status-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #ffffff0d;
+  font-size: 13px;
+}
+
+.status-line:last-child { border-bottom: 0; }
+.status-line span:first-child { color: var(--muted); }
+.status-value { font-weight: 800; text-align: right; }
+
+.green { color: var(--green); }
+.amber { color: var(--amber); }
+.red { color: #ff7777; }
+.blue { color: var(--cyan); }
+
+.mission-title {
+  font-size: 23px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.mission-copy {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.side-clock {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+#last-updated {
+  color: var(--text);
+  font-family: Consolas, monospace;
+}
+
+.bottom-area {
+  flex: 0 0 auto;
+  border-top: 1px solid #3e2630;
+  background: #120d16;
+}
+
+.ticker-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 0 18px;
+  color: white;
+  background: #9b2437;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.ticker-row {
+  height: 49px;
+  display: flex;
+  overflow: hidden;
+  align-items: stretch;
+  border-bottom: 1px solid #ffffff0a;
+}
+
+.ticker-window {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+#ticker-content {
+  display: inline-block;
+  width: max-content;
+  padding-left: 100%;
+  white-space: nowrap;
+  color: #ffe7eb;
+  font-size: clamp(14px, 1.25vw, 19px);
+  font-weight: 800;
+  animation: ticker-scroll 32s linear infinite;
+}
+
+#ticker-content:hover { animation-play-state: paused; }
+
+.ticker-window.static #ticker-content {
+  width: 100%;
+  padding-left: 18px;
+  animation: none;
+  white-space: normal;
+}
+
+.ticker-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 20px;
+  color: #8da0b5;
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+#ticker-state { color: var(--green); }
+
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes pulse {
+  50% { opacity: .45; }
+}
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+body.compact main { padding-top: 12px; padding-bottom: 12px; }
+body.compact .message-card { padding: 13px 15px; }
+body.compact #main-panel { gap: 10px; }
+body.compact main { grid-template-columns: minmax(0, 1fr) 255px; }
+body.compact .side-card { padding: 13px; }
+
+@media (min-width: 1500px) {
+  main { grid-template-columns: minmax(0, 1fr) 330px; }
+  #main-panel { gap: 18px; }
+  .message-card { padding: 23px; }
+}
+
+@media (max-width: 950px) {
+  body { overflow: auto; height: auto; min-height: 100vh; }
+  .topbar { grid-template-columns: 1fr auto; }
+  .header-center { grid-column: 2; grid-row: 1; }
+  .header-right { display: none; }
+  main { grid-template-columns: 1fr; }
+  #main-panel { overflow: visible; }
+  .sidebar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .status-strip { font-size: 9px; }
+}
+
+@media (max-width: 600px) {
+  .topbar { padding: 12px; gap: 10px; }
+  .brand-mark { width: 39px; height: 39px; font-size: 17px; }
+  .brand-name { font-size: 14px; }
+  .brand-sub { font-size: 9px; letter-spacing: .08em; }
+  .header-center .live-label { font-size: 9px; }
+  #clock { font-size: 20px; }
+  #date { font-size: 9px; }
+  .status-strip { padding: 9px 12px; }
+  .status-right { display: none; }
+  main { padding: 14px 12px; }
+  #main-panel { grid-template-columns: 1fr; }
+  .sidebar { grid-template-columns: 1fr; }
+  .ticker-heading { padding: 0 10px; font-size: 10px; }
+  .ticker-bottom { font-size: 8px; }
+}
+
+/* TV fullscreen: hide controls after entering fullscreen */
+:fullscreen .fullscreen-only-hide { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
   }
+}
 </style>
 </head>
-<body>
 
-<header>
-  Southeast Communications 911
-  <div id="clock">--:--:--</div>
-  <button id="fullscreen-btn">Fullscreen</button>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">911</div>
+    <div>
+      <div class="brand-name">SOUTHEAST COMMUNICATIONS</div>
+      <div class="brand-sub">Public Information Display</div>
+    </div>
+  </div>
+
+  <div class="header-center">
+    <div class="live-label"><span class="live-dot"></span>COMMAND CENTER</div>
+    <div id="clock">--:--:--</div>
+    <div id="date">Loading date...</div>
+  </div>
+
+  <div class="header-right">
+    <div class="network-label">DISPLAY STATUS</div>
+    <div id="connection">● INITIALIZING</div>
+    <div class="header-actions fullscreen-only-hide">
+      <button class="small-btn" id="fullscreen-btn">⛶ Fullscreen</button>
+      <button class="small-btn" id="compact-btn">Compact Mode</button>
+    </div>
+  </div>
 </header>
 
-<div id="main-panel">Loading dispatch logs/messages...</div>
-
-<div id="ticker-container">
-  <div id="ticker-content" id="ticker-text">Loading alert banner...</div>
+<div class="status-strip">
+  <div class="status-left">
+    <div class="status-item">BOARD: <strong>COMMUNICATIONS</strong></div>
+    <div class="status-item">MODE: <strong>INFORMATION</strong></div>
+  </div>
+  <div class="status-right">
+    <div class="status-item">CONTENT: <strong id="content-state">LOADING</strong></div>
+    <div class="status-item">REFRESH: <strong>15 SEC</strong></div>
+  </div>
 </div>
 
+<main>
+  <section class="briefings">
+    <div class="section-heading">
+      <div>
+        <div class="section-title">Operations Briefing Board</div>
+        <div class="section-subtitle">CURRENT ANNOUNCEMENTS &amp; INFORMATION</div>
+      </div>
+      <div id="message-count">00 ITEMS</div>
+    </div>
+    <div id="main-panel" aria-live="polite">
+      <div class="empty-state">Connecting to the information feed...</div>
+    </div>
+  </section>
+
+  <aside class="sidebar">
+    <section class="side-card">
+      <h2 class="side-heading">Display Status</h2>
+      <div class="status-line">
+        <span>Webpage</span>
+        <strong class="status-value green">ONLINE</strong>
+      </div>
+      <div class="status-line">
+        <span>Content feed</span>
+        <strong class="status-value" id="feed-status">CONNECTING</strong>
+      </div>
+      <div class="status-line">
+        <span>Last successful sync</span>
+        <strong class="status-value" id="last-updated">--:--:--</strong>
+      </div>
+      <div class="status-line">
+        <span>Announcements</span>
+        <strong class="status-value blue" id="side-count">0</strong>
+      </div>
+    </section>
+
+    <section class="side-card">
+      <h2 class="side-heading">Communications</h2>
+      <div class="mission-title">Stay Informed.<br>Stay Connected.</div>
+      <div class="mission-copy">
+        Official announcements and internal informational messages for the Southeast Communications team.
+      </div>
+      <div class="side-clock">
+        LOCAL DISPLAY TIME<br>
+        <strong id="side-date">Synchronizing...</strong>
+      </div>
+    </section>
+
+    <section class="side-card">
+      <h2 class="side-heading">Board Information</h2>
+      <div class="status-line">
+        <span>Platform</span>
+        <strong class="status-value">GITHUB PAGES</strong>
+      </div>
+      <div class="status-line">
+        <span>Update interval</span>
+        <strong class="status-value">15 SECONDS</strong>
+      </div>
+      <div class="status-line">
+        <span>Alert feed</span>
+        <strong class="status-value" id="ticker-feed-status">CONNECTING</strong>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<footer class="bottom-area">
+  <div class="ticker-row">
+    <div class="ticker-heading">● NOTICE BOARD</div>
+    <div class="ticker-window" id="ticker-window">
+      <div id="ticker-content">Loading announcements...</div>
+    </div>
+  </div>
+  <div class="ticker-bottom">
+    <span>SOUTHEAST COMMUNICATIONS • INFORMATION DISPLAY</span>
+    <span id="ticker-state">INITIALIZING</span>
+  </div>
+</footer>
+
 <script>
-const clock = document.getElementById('clock');
-const mainPanel = document.getElementById('main-panel');
-const tickerContent = document.getElementById('ticker-content');
-const fsButton = document.getElementById('fullscreen-btn');
+"use strict";
 
-// 1. Clock functionality
+const $ = id => document.getElementById(id);
+
+const mainPanel = $("main-panel");
+const tickerContent = $("ticker-content");
+
+let lastMessagesSignature = "";
+let lastTickerSignature = "";
+let messagesLoaded = false;
+let tickerLoaded = false;
+let messageCount = 0;
+let tickerItems = [];
+
 function updateClock() {
-  clock.textContent = new Date().toLocaleTimeString();
-}
-setInterval(updateClock, 1000);
-updateClock();
+  const now = new Date();
 
-// 2. Load Main Center Messages
+  $("clock").textContent = now.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  });
+
+  const date = now.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+
+  $("date").textContent = date;
+  $("side-date").textContent =
+    now.toLocaleDateString() + " • " +
+    now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function setConnection(online) {
+  $("connection").textContent = online
+    ? "● CONTENT ONLINE"
+    : "● USING LAST AVAILABLE DATA";
+
+  $("connection").style.color = online
+    ? "var(--green)"
+    : "var(--amber)";
+}
+
+function safeString(value, fallback = "") {
+  return typeof value === "string" ? value : fallback;
+}
+
+function normalizeMessages(data) {
+  if (!Array.isArray(data)) {
+    throw new Error("messages.json must contain a JSON array.");
+  }
+
+  return data.map((item, index) => {
+    if (typeof item === "string") {
+      return {
+        title: item,
+        body: "",
+        category: "Announcement",
+        level: "info",
+        time: "",
+        footer: ""
+      };
+    }
+
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      throw new Error("Invalid announcement at index " + index);
+    }
+
+    const allowedLevels = ["info", "warning", "urgent", "success"];
+    const level = allowedLevels.includes(item.level) ? item.level : "info";
+
+    return {
+      title: safeString(item.title, "Announcement"),
+      body: safeString(item.body),
+      category: safeString(item.category, "Announcement"),
+      level,
+      time: safeString(item.time),
+      footer: safeString(item.footer)
+    };
+  });
+}
+
+function renderMessages(messages) {
+  const signature = JSON.stringify(messages);
+
+  if (signature === lastMessagesSignature) return;
+
+  lastMessagesSignature = signature;
+  messageCount = messages.length;
+
+  const fragment = document.createDocumentFragment();
+
+  if (!messages.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No announcements are currently posted.";
+    fragment.appendChild(empty);
+  } else {
+    messages.forEach((msg, index) => {
+      const card = document.createElement("article");
+      card.className = "message-card";
+      card.dataset.level = msg.level;
+      card.style.animationDelay = Math.min(index * 45, 300) + "ms";
+
+      const top = document.createElement("div");
+      top.className = "card-top";
+
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = msg.category;
+
+      const time = document.createElement("span");
+      time.className = "card-time";
+      time.textContent = msg.time;
+
+      top.append(tag, time);
+
+      const title = document.createElement("h2");
+      title.className = "card-title";
+      title.textContent = msg.title;
+
+      card.append(top, title);
+
+      if (msg.body) {
+        const body = document.createElement("p");
+        body.className = "card-body";
+        body.textContent = msg.body;
+        card.appendChild(body);
+      }
+
+      if (msg.footer) {
+        const footer = document.createElement("div");
+        footer.className = "card-footer";
+        footer.textContent = msg.footer;
+        card.appendChild(footer);
+      }
+
+      fragment.appendChild(card);
+    });
+  }
+
+  mainPanel.replaceChildren(fragment);
+
+  $("message-count").textContent =
+    String(messages.length).padStart(2, "0") +
+    (messages.length === 1 ? " ITEM" : " ITEMS");
+
+  $("side-count").textContent = messages.length;
+  $("content-state").textContent = "CURRENT";
+}
+
+function normalizeTicker(data) {
+  if (!Array.isArray(data)) {
+    throw new Error("ticker.json must contain a JSON array.");
+  }
+
+  return data.filter(item => typeof item === "string" && item.trim())
+    .map(item => item.trim());
+}
+
+function renderTicker(items) {
+  const signature = JSON.stringify(items);
+
+  if (signature === lastTickerSignature) return;
+
+  lastTickerSignature = signature;
+  tickerItems = items;
+
+  const text = items.length
+    ? items.join("     ◆     ")
+    : "No current announcements on the notice board.";
+
+  tickerContent.textContent = text;
+
+  // Adjust animation duration for different message lengths.
+  const seconds = Math.max(18, Math.min(100, text.length * 0.22));
+  tickerContent.style.animationDuration = seconds + "s";
+
+  $("ticker-state").textContent = items.length
+    ? items.length + " NOTICE(S) POSTED"
+    : "NO ACTIVE NOTICES";
+}
+
+async function fetchJSON(path) {
+  const response = await fetch(
+    path + "?v=" + Date.now(),
+    { cache: "no-store" }
+  );
+
+  if (!response.ok) {
+    throw new Error(path + " returned HTTP " + response.status);
+  }
+
+  return response.json();
+}
+
 async function loadMainMessages() {
   try {
-    const res = await fetch('messages.json?v=' + Date.now());
-    const data = await res.json();
-    
-    // Generates a simple paragraph for every line in your JSON file
-    mainPanel.innerHTML = data.length 
-      ? data.map(msg => `<p>${msg}</p>`).join('')
-      : '<p>No active briefings or messages.</p>';
-  } catch (err) {
-    mainPanel.innerHTML = '<p style="color: #ff6666;">Error loading messages.json. Check file formatting.</p>';
+    const data = await fetchJSON("./messages.json");
+    const messages = normalizeMessages(data);
+
+    renderMessages(messages);
+    messagesLoaded = true;
+
+    $("feed-status").textContent = "ONLINE";
+    $("feed-status").className = "status-value green";
+    $("last-updated").textContent = new Date().toLocaleTimeString();
+    $("content-state").textContent = "CURRENT";
+
+    setConnection(true);
+  } catch (error) {
+    console.error("Announcement feed:", error);
+
+    $("feed-status").textContent = messagesLoaded ? "STALE" : "OFFLINE";
+    $("feed-status").className = "status-value amber";
+    $("content-state").textContent = messagesLoaded
+      ? "LAST KNOWN DATA"
+      : "FEED UNAVAILABLE";
+
+    setConnection(false);
+
+    if (!messagesLoaded) {
+      mainPanel.replaceChildren();
+
+      const errorBox = document.createElement("div");
+      errorBox.className = "empty-state";
+      errorBox.textContent =
+        "Unable to load messages.json. Check the GitHub file and Pages deployment.";
+      mainPanel.appendChild(errorBox);
+    }
   }
 }
 
-// 3. Load Bottom Scrolling Banner
 async function loadTickerMessages() {
   try {
-    const res = await fetch('ticker.json?v=' + Date.now());
-    const data = await res.json();
-    
-    // Joins all your ticker items together separated by bullet points
-    tickerContent.textContent = data.length 
-      ? data.join('  •  ') 
-      : 'No active ticker alerts.';
-  } catch (err) {
-    tickerContent.textContent = 'Error loading ticker.json';
+    const data = await fetchJSON("./ticker.json");
+    const items = normalizeTicker(data);
+
+    renderTicker(items);
+    tickerLoaded = true;
+
+    $("ticker-feed-status").textContent = "ONLINE";
+    $("ticker-feed-status").className = "status-value green";
+    $("ticker-state").textContent = items.length
+      ? items.length + " NOTICE(S) POSTED"
+      : "NO ACTIVE NOTICES";
+  } catch (error) {
+    console.error("Ticker feed:", error);
+
+    $("ticker-feed-status").textContent =
+      tickerLoaded ? "STALE" : "OFFLINE";
+
+    if (!tickerLoaded) {
+      tickerContent.textContent =
+        "Notice feed unavailable. Check ticker.json on GitHub.";
+      tickerContent.style.animation = "none";
+      $("ticker-state").textContent = "FEED UNAVAILABLE";
+    }
   }
 }
 
-// 4. Fullscreen Button Control
-fsButton.addEventListener('click', () => {
-  if (document.documentElement.requestFullscreen) {
-    document.documentElement.requestFullscreen();
-  }
-  fsButton.style.display = 'none';
-});
-
-document.addEventListener('fullscreenchange', () => {
-  if (!document.fullscreenElement) {
-    fsButton.style.display = 'block';
+$("fullscreen-btn").addEventListener("click", async () => {
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+    } else {
+      await document.exitFullscreen();
+    }
+  } catch (error) {
+    console.error("Fullscreen unavailable:", error);
   }
 });
 
-// Run updates automatically
+$("compact-btn").addEventListener("click", () => {
+  document.body.classList.toggle("compact");
+});
+
+document.addEventListener("fullscreenchange", () => {
+  $("fullscreen-btn").textContent = document.fullscreenElement
+    ? "⛶ Exit Fullscreen"
+    : "⛶ Fullscreen";
+});
+
+updateClock();
+setInterval(updateClock, 1000);
+
 loadMainMessages();
 loadTickerMessages();
 
-setInterval(loadMainMessages, 5000);     // Check messages.json every 5 seconds
-setInterval(loadTickerMessages, 10000);  // Check ticker.json every 10 seconds
+// Refresh the two feeds independently.
+setInterval(loadMainMessages, 15000);
+setInterval(loadTickerMessages, 15000);
 </script>
-
 </body>
 </html>
